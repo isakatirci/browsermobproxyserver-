@@ -21,27 +21,32 @@ public class BrowserMobProxyApplication {
     public static void main(String[] args) {
         SpringApplication.run(BrowserMobProxyApplication.class, args);
 
-        BrowserMobProxyServer proxy = new BrowserMobProxyServer();
-		proxy.autoAuthorization("", "","", AuthType.BASIC);
+        BrowserMobProxyServer mobProxyServer = new BrowserMobProxyServer();
+        mobProxyServer.setTrustAllServers(true);
+		mobProxyServer.autoAuthorization("", "","", AuthType.BASIC);
 
 	/*	//https://stackoverflow.com/questions/50775287/unable-to-perfrom-http-basic-auth-using-browsermob-proxy
 		String encodedCreadentials = "Basic " + (Base64.getEncoder().encodeToString("login:password".getBytes()));
 		proxy.addHeader("Authorization", encodedCreadentials);*/
 
 
-        proxy.start();
+        mobProxyServer.start();
 
 
         System.out.println("=================================================================");
-        System.out.println("This Execute Browser Port --> " + proxy.getPort());
+        System.out.println("This Execute Browser Port --> " + mobProxyServer.getPort());
         System.out.println("=================================================================");
 
-        Proxy seleniumProxy = ClientUtil.createSeleniumProxy(proxy);
+        Proxy seleniumProxy = ClientUtil.createSeleniumProxy(mobProxyServer);
+        seleniumProxy.setHttpProxy("localhost:" + mobProxyServer.getPort());
+        seleniumProxy.setSslProxy("localhost:" + mobProxyServer.getPort());
 
 
-        DesiredCapabilities seleniumCapabilities = new DesiredCapabilities();
-        seleniumCapabilities.setCapability(CapabilityType.PROXY, seleniumProxy);
+/*        DesiredCapabilities seleniumCapabilities = new DesiredCapabilities();
+        seleniumCapabilities.setCapability(CapabilityType.PROXY, seleniumProxy);*/
 
+        ChromeOptions chromeOptions = new ChromeOptions();
+        chromeOptions.setProxy(seleniumProxy);
         //System.setProperty("webdriver.gecko.driver","C:\\Users\\isa\\Desktop\\browser-mob-proxy\\browser-mob-proxy\\src\\main\\resources\\geckodriver.exe");
         //WebDriver driver = new FirefoxDriver();
         System.setProperty("webdriver.chrome.driver", "C:\\Users\\isa\\Desktop\\browser-mob-proxy\\browser-mob-proxy\\src\\main\\resources\\chromedriver.exe");
@@ -52,7 +57,7 @@ public class BrowserMobProxyApplication {
         driver.get("https://www.sahibinden.com/");
 
         driver.close();
-        proxy.stop();
+        mobProxyServer.stop();
     }
 
 
